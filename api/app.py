@@ -1,7 +1,5 @@
-"""FastAPI application for UltraskateDashboard"""
-
 from contextlib import asynccontextmanager
-import anyio
+from anyio import to_thread
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import events, performances
@@ -16,7 +14,7 @@ async def lifespan(app: FastAPI):
     blocking the event loop.
     """
     try:
-        ok = await anyio.to_thread.run_sync(load_events)
+        ok = await to_thread.run_sync(load_events)
         print(f"Startup: events loaded -> {ok}")
     except Exception as e:
         print(f"Startup: failed to load events: {e}")
