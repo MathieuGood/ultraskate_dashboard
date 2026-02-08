@@ -5,11 +5,18 @@ Une API asynchrone pour accéder aux données des événements Ultraskate.
 ## Démarrage
 
 ```bash
-# Démarrer le serveur en mode développement
+# Démarrer le serveur en mode développement (pré-chargement automatique des événements)
 uv run uvicorn api.app:app --reload
+
+# Alternative : utiliser le script helper qui charge d'abord les événements puis démarre uvicorn
+uv run python run_api.py
 
 # Le serveur sera accessible à http://localhost:8000
 ```
+
+Note: l'application FastAPI exécute désormais `load_events()` lors de l'événement `startup`,
+donc lancer `uv run uvicorn api.app:app --reload` pré-charge automatiquement les événements depuis
+`scraped_events_save/` pour que les routes retournent des données immédiatement.
 
 ## Documentation Interactive
 
@@ -185,20 +192,3 @@ api/
     ├── events.py       # Routes pour les événements
     └── performances.py # Routes pour les performances
 ```
-
-## Features
-
-✅ API asynchrone avec FastAPI  
-✅ CORS activé pour les appels frontend  
-✅ Documentation Swagger/ReDoc intégrée  
-✅ Routes pour événements et performances  
-✅ Filtrage par sport et année  
-✅ Classements (top N)  
-
-## Prochaines étapes
-
-- [ ] Schémas Pydantic pour la validation
-- [ ] Caching des réponses
-- [ ] Authentication/autorisation
-- [ ] Pagination pour les listes longues
-- [ ] Filtrage avancé
