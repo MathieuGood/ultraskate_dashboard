@@ -1,13 +1,18 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+
+import { ref } from 'vue'
+import Header from './components/Header.vue';
+
+const title = ref("Ultraskate Dashboard")
+
+
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p class="">
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <Header />
   <div class="bg-red-300">
-    This is just a test div
+    {{ title }}
   </div>
 </template>
 
