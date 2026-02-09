@@ -216,20 +216,23 @@ class Performance:
         total_miles = self.event.track.length_miles
         return self._calculate_average_speed(total_miles, lap_time_ss, "kph")
 
-    def to_dict(self) -> dict:
-        return {
+    def to_dict(self, laps: bool = True) -> dict:
+        performance_dic = {
             "athlete": self.athlete.to_dict(),
+            "sport": self.sport,
             "category": self.category,
             "age_group": self.age_group,
             "total_time_hhmmss": self.total_time_hhmmss(),
             "total_laps": self.total_laps(),
             "total_miles": self.total_miles(),
             "total_km": self.total_km(),
-            "laps": [
+        }
+        if laps:
+            performance_dic["laps"] = [
                 {"number": lap.lap_number, "time": lap.get_lap_time_hhmmss()}
                 for lap in self.laps
-            ],
-        }
+            ]
+        return performance_dic
 
     @classmethod
     def from_dict(cls, performance_data: dict, event: Event) -> Performance:

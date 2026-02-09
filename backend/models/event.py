@@ -36,10 +36,10 @@ class Event:
     def add_performance(self, performance: Performance) -> None:
         self.performances.append(performance)
 
-    def to_dict(self) -> dict:
+    def to_dict(self, laps: bool = True) -> dict:
         performances_list: list[dict] = []
         for performance in self.performances:
-            performances_list.append(performance.to_dict())
+            performances_list.append(performance.to_dict(laps=laps))
         return {
             "date": self.date.isoformat(),
             "track": self.track.to_dict(),
@@ -48,7 +48,7 @@ class Event:
 
     def to_json_file(self, file_name: str) -> None:
         with open(file_name, "w") as f:
-            json.dump(self.to_dict(), f, indent=4)
+            json.dump(self.to_dict(laps=True), f, indent=4)
 
     @classmethod
     def from_json_file(cls, file_name: str) -> Event:
