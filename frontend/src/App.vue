@@ -1,19 +1,16 @@
 <script setup lang="ts">
 
-
 import { ref } from 'vue'
-import Header from './components/Header.vue';
+import Home from '@/pages/Home.vue';
 
 const title = ref("Ultraskate Dashboard")
 
-
 </script>
 
+
 <template>
-  <Header />
-  <div class="bg-red-300">
-    {{ title }}
-  </div>
+  <Home />
 </template>
+
 
 <style scoped></style>
