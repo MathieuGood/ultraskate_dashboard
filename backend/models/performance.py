@@ -95,7 +95,8 @@ class Performance:
         Returns:
             float: Total distance in miles
         """
-        return self.event.track.length_miles * self.total_laps()
+        value = self.event.track.length_miles * self.total_laps()
+        return round(value, 2)
 
     def total_km(self) -> float:
         """
@@ -104,7 +105,8 @@ class Performance:
         Returns:
             float: Total distance in kilometers
         """
-        return self.total_miles() * 1.60934
+        value = self.total_miles() * 1.60934
+        return round(value, 2)
 
     def total_miles_at_lap(self, lap_number: int) -> float:
         """

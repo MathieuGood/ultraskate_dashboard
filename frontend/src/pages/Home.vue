@@ -2,17 +2,16 @@
 import { ref } from 'vue'
 import Header from '@/components/Header.vue'
 import Athlete from '@/pages/Athlete.vue'
-import Event from '@/pages/Event.vue';
+import Event from '@/pages/Event.vue'
 
-const title = ref("Ultraskate Dashboard")
-
+const title = ref('Ultraskate Dashboard')
 </script>
 
 <template>
-    <div class="w-screen h-screen bg-gray-400">
+    <div class="w-full h-full  bg-gray-400">
         <Header></Header>
         <Event></Event>
-        <Athlete></Athlete>
+        <!-- <Athlete></Athlete> -->
     </div>
 </template>
 

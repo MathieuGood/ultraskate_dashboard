@@ -9,3 +9,8 @@ class EventRegistry:
         cls.events.append(event)
         cls.events.sort(key=lambda e: e.date)
         return True
+
+    @classmethod
+    def sort_all_performances(cls) -> None:
+        for event in cls.events:
+            event.performances.sort(key=lambda p: p.total_miles(), reverse=True)
