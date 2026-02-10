@@ -8,7 +8,7 @@ const title = ref('Ultraskate Dashboard')
 </script>
 
 <template>
-    <div class="w-full h-full  bg-gray-400">
+    <div class="w-full h-full">
         <Header></Header>
         <Event></Event>
         <!-- <Athlete></Athlete> -->
