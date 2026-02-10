@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from anyio import to_thread
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import events, performances
+from api.routes import events, performances, base
 from api.loader import load_events
 
 
@@ -38,21 +38,6 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(base.router)
 app.include_router(events.router)
 app.include_router(performances.router)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint - API health check"""
-    return {
-        "message": "UltraskateDashboard API",
-        "version": "0.1.0",
-        "status": "online",
-    }
-
-
-@app.get("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy"}

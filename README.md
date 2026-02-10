@@ -4,7 +4,7 @@
 
 ## Install
 
-If needed, install Playwright with
+For webscraping features, you may need to install playwright
 
 ``` bash
 uv run python -m playwright install
@@ -15,9 +15,6 @@ uv run python -m playwright install
 ```bash
 # Start the server in development mode (auto-reload and pre-loading events)
 uv run uvicorn api.app:app --reload
-
-# Alternative : use the helper script that first loads events then starts uvicorn
-uv run python run_api.py
 ```
 
 **API server URL** : <http://localhost:8000>
