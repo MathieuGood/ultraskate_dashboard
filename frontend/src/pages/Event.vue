@@ -31,15 +31,15 @@ const rows = computed(() => (event.value && Array.isArray(event.value.performanc
         <div class="text-xl py-3">
             {{ event ? `${event.track.city} ${eventYear}` : '' }}
         </div>
-        <DataTable :value="rows" :tableStyle="{}">
-            <Column field="athlete.name" header="Athlete"></Column>
-            <Column field="age_group" header="Age Group"></Column>
-            <Column field="category" header="Category"></Column>
-            <Column field="sport" header="Sport"></Column>
-            <Column field="total_laps" header="Laps"></Column>
-            <Column field="total_km" header="KM"></Column>
-            <Column field="total_miles" header="Miles"></Column>
-            <Column field="total_time_hhmmss" header="Time"></Column>
+        <DataTable :value="rows" sortMode="multiple" tableStyle="{}">
+            <Column field="athlete.name" header="Athlete" sortable ></Column>
+            <Column field="age_group" header="Age Group" sortable ></Column>
+            <Column field="category" header="Category" sortable ></Column>
+            <Column field="sport" header="Sport" sortable ></Column>
+            <Column field="total_laps" header="Laps" sortable ></Column>
+            <Column field="total_km" header="KM" sortable ></Column>
+            <Column field="total_miles" header="Miles" sortable ></Column>
+            <Column field="total_time_hhmmss" header="Time" sortable ></Column>
         </DataTable>
     </div>
 </template>
