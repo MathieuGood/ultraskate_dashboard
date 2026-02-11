@@ -47,10 +47,10 @@ class Performance:
             self.sport = "Skateboard"
             return
         if "paddle" in self.category.lower() and "push" in self.category.lower():
-            self.sport = "Paddle Push"
+            self.sport = "Skateboard Paddle Push"
             return
         if "paddle" in self.category.lower():
-            self.sport = "Paddle"
+            self.sport = "Skateboard Paddle"
             return
         elif "inline" in self.category.lower() or "roller" in self.category.lower():
             self.sport = "Inline Skating"
