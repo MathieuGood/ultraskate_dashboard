@@ -1,0 +1,25 @@
+# Use a slim Python base image for Python 3.13
+FROM python:3.13-slim-buster
+
+# Set working directory inside the container
+WORKDIR /app/backend
+
+# Install uv (fast Python package installer and resolver)
+RUN pip install uv
+
+# Copy dependency files and install them
+# We copy them first to leverage Docker's build cache
+COPY pyproject.toml uv.lock ./
+
+# Install backend dependencies using uv.
+# 'uv' is used here for efficient dependency management.
+RUN uv pip install --system --locked
+
+# Copy the rest of the backend application code
+COPY . .
+
+# Expose the port for the FastAPI application
+EXPOSE 8000
+
+# Command to run the FastAPI application.
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
