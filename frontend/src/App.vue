@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Home from '@/pages/Home.vue'
-
-const title = ref('Ultraskate Dashboard')
+import Header from '@/components/Header.vue' // Re-import Header
 </script>
 
 <template>
-  <Home />
+  <Header /> <!-- Add Header component here -->
+  <router-view />
 </template>
 
 <style scoped></style>

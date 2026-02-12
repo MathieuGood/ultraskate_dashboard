@@ -2,9 +2,19 @@
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { fetchEventByYear, fetchAllEvents } from '@/fetch/fetchEvents'
 import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
+
+const props = defineProps({
+    year: {
+        type: String,
+        required: false
+    }
+})
+
+const router = useRouter()
 
 const event = ref(null)
 const eventList = ref([])
@@ -12,39 +22,49 @@ const options = ref(['Skateboard', 'Inline', 'Quad'])
 const value = ref('Skateboard')
 const selectedEventYear = ref(null)
 
+const fetchAndSetEvent = (year) => {
+    if (!year) return
+    console.log(`Fetching event data for year: ${year}`)
+    fetchEventByYear(year)
+        .then((response) => {
+            event.value = response
+            selectedEventYear.value = parseInt(year, 10) // Ensure dropdown is in sync
+        })
+        .catch((error) => {
+            console.error(error)
+            // Maybe redirect to a 404 page or show an error message
+        })
+}
+
+// Watch for changes in the dropdown selection
+watch(selectedEventYear, (newYear) => {
+    if (newYear && newYear !== parseInt(props.year, 10)) {
+        router.push({ name: 'EventByYear', params: { year: newYear } })
+    }
+})
+
+// Watch for changes in the route parameter (via props)
+watch(() => props.year, (newYear) => {
+    fetchAndSetEvent(newYear)
+}, { immediate: true }) // `immediate: true` runs the watcher on component load
+
+// Initial load of all events for the dropdown
 fetchAllEvents()
     .then((response) => {
         eventList.value = response
-        // set the selected event year to the most recent year available
-        const years = (response || []).map((evt) => new Date(evt.date).getFullYear())
-        if (years.length) {
-            const mostRecent = Math.max(...years)
-            selectedEventYear.value = mostRecent
+        if (!props.year) {
+            // If no year is in the URL, find the most recent one and redirect.
+            const years = (response || []).map((evt) => new Date(evt.date).getFullYear())
+            if (years.length) {
+                const mostRecent = Math.max(...years)
+                router.replace({ name: 'EventByYear', params: { year: mostRecent } })
+            }
         }
     })
     .catch((error) => {
         console.error(error)
     })
 
-const fetchAndSetEvent = (year) => {
-    fetchEventByYear(year)
-        .then((response) => {
-            console.log('fetchEventByYear response (body):', response)
-            console.log('performances length:', Array.isArray(response.performances) ? response.performances.length : 0)
-            event.value = response
-        })
-        .catch((error) => {
-            console.error(error)
-        })
-}
-
-// initial load
-fetchAndSetEvent(selectedEventYear.value)
-
-// refetch when the selected event year changes
-watch(selectedEventYear, (newYear) => {
-    if (newYear) fetchAndSetEvent(newYear)
-})
 
 // Filter performances by sport regarding the value of the SelectButton
 const filteredPerformances = computed(() => {
@@ -54,18 +74,10 @@ const filteredPerformances = computed(() => {
     )
 })
 
-// Parse event.date to a more readable format
-const eventYear = computed(() => {
-    if (!event.value || !event.value.date) return ''
-    const dateObj = new Date(event.value.date)
-    return dateObj.getFullYear()
-})
-
 const eventListOptions = computed(() => {
     return eventList.value.map((evt) => {
         const dateObj = new Date(evt.date)
         return {
-            // show city and year (e.g. "Miami — 2023") but keep value as year
             label: `${evt.track.city} ${dateObj.getFullYear()}`,
             value: dateObj.getFullYear(),
         }

@@ -4,6 +4,7 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import App from './App.vue'
 
+import router from './router'
 import { definePreset } from '@primevue/themes'
 
 const MidnightAmber = definePreset(Aura, {
@@ -45,5 +46,7 @@ app.use(PrimeVue, {
     },
   },
 })
+
+app.use(router)
 
 app.mount('#app')
