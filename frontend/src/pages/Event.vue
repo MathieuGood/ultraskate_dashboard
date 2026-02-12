@@ -78,14 +78,8 @@ const rows = computed(() => (event.value && Array.isArray(event.value.performanc
 <template>
     <div class="p-4">
         <div class="flex items-center justify-center pb-4 gap-5">
-            <Select
-                v-model="selectedEventYear"
-                :options="eventListOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select an Event"
-                class="w-full md:w-56"
-            ></Select>
+            <Select v-model="selectedEventYear" :options="eventListOptions" optionLabel="label" optionValue="value"
+                placeholder="Select an Event" class="w-full md:w-56"></Select>
 
             <div class="card flex justify-center">
                 <SelectButton v-model="value" :options="options" />
@@ -93,7 +87,7 @@ const rows = computed(() => (event.value && Array.isArray(event.value.performanc
         </div>
 
         <DataTable :value="filteredPerformances" sortMode="multiple" tableStyle="{}">
-            <Column header="Position">
+            <Column header="#">
                 <template #body="slotProps">
                     {{ (slotProps.rowIndex ?? slotProps.index ?? 0) + 1 }}
                 </template>
