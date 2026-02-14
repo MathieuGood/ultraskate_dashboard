@@ -18,7 +18,11 @@ const router = useRouter()
 
 const event = ref(null)
 const eventList = ref([])
-const options = ref(['Skateboard', 'Inline', 'Quad'])
+const options = ref([
+    { label: 'Skateboard', value: 'Skateboard', disabled: false },
+    { label: 'Inline', value: 'Inline', disabled: false },
+    { label: 'Quad', value: 'Quad', disabled: false },
+])
 const value = ref('Skateboard')
 const selectedEventYear = ref(null)
 
@@ -28,7 +32,20 @@ const fetchAndSetEvent = (year) => {
     fetchEventByYear(year)
         .then((response) => {
             event.value = response
-            selectedEventYear.value = parseInt(year, 10) // Ensure dropdown is in sync
+            selectedEventYear.value = parseInt(year, 10)
+            // Disable sport options not available in this event
+            const sports = (response.performances || []).map((p) => p.sport.toLowerCase())
+            const hasSport = (optValue) =>
+                sports.some((s) => s.includes(optValue.toLowerCase()))
+            options.value = options.value.map((opt) => ({
+                ...opt,
+                disabled: !hasSport(opt.value),
+            }))
+            // If current selection is disabled, switch to first available sport
+            if (!hasSport(value.value)) {
+                const firstAvailable = options.value.find((opt) => !opt.disabled)
+                if (firstAvailable) value.value = firstAvailable.value
+            }
         })
         .catch((error) => {
             console.error(error)
@@ -94,7 +111,8 @@ const rows = computed(() => (event.value && Array.isArray(event.value.performanc
                 placeholder="Select an Event" class="w-full md:w-56"></Select>
 
             <div class="card flex justify-center">
-                <SelectButton v-model="value" :options="options" />
+                <SelectButton v-model="value" :options="options" optionLabel="label" optionValue="value"
+                    optionDisabled="disabled" />
             </div>
         </div>
 
