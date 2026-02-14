@@ -7,6 +7,16 @@ export const fetchAllEvents = async () => {
 }
 
 export const fetchEventByYear = async (year: number) => {
-  const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${year}`)
-  return response.json()
+    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${year}`)
+    return response.json()
+}
+
+export const fetchEventByCityYear = async (city: string, year: string) => {
+    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${city}/${year}`)
+    return response.json()
+}
+
+export const fetchEventGraphData = async (city: string, year: string) => {
+    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${city}/${year}/graph`)
+    return response.json()
 }

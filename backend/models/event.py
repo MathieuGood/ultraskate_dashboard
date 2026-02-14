@@ -33,18 +33,24 @@ class Event:
             self.date: datetime = event_params.date
             self.track: Track = event_params.track
 
+    @property
+    def slug(self) -> str:
+        city_part = self.track.city.lower().replace(' ', '-')
+        return f'{city_part}_{self.date.year}'
+
     def add_performance(self, performance: Performance) -> None:
         self.performances.append(performance)
 
-    def to_dict(self, laps: bool = True) -> dict:
-        performances_list: list[dict] = []
-        for performance in self.performances:
-            performances_list.append(performance.to_dict(laps=laps))
-        return {
+    def to_dict(self, performances: bool = True, laps: bool = True) -> dict:
+        result = {
             "date": self.date.isoformat(),
             "track": self.track.to_dict(),
-            "performances": performances_list,
         }
+        if performances:
+            result["performances"] = [
+                p.to_dict(laps=laps) for p in self.performances
+            ]
+        return result
 
     def to_json_file(self, file_name: str) -> None:
         with open(file_name, "w") as f:

@@ -13,7 +13,7 @@ UltraskateDashboard/
 ├── frontend/          # Vue 3 + Vite + TypeScript SPA
 │   └── src/
 │       ├── components/   # Reusable Vue components (Header.vue)
-│       ├── pages/        # Route-level page components (Home, Event, Athlete)
+│       ├── pages/        # Route-level page components (Home, EventGrid, EventGraph)
 │       ├── router/       # Vue Router configuration
 │       ├── fetch/        # API client functions
 │       └── css/          # Global styles (Tailwind imports)
@@ -37,6 +37,7 @@ UltraskateDashboard/
 | Language | TypeScript ~5.9 |
 | CSS | Tailwind CSS 4 |
 | UI components | PrimeVue 4 (MidnightAmber theme) |
+| Charts | Apache ECharts via vue-echarts |
 | Routing | Vue Router 4 (history mode) |
 | Backend framework | FastAPI 0.128+ |
 | Python version | >= 3.13 |
@@ -84,33 +85,55 @@ Base URL: `http://localhost:8000`
 |--------|------|-------------|
 | GET | `/` | API info / health check |
 | GET | `/health` | Health status |
-| GET | `/events` | List all events (without lap data) |
-| GET | `/events/{year}` | Get event by year |
+| GET | `/events` | List all events (metadata only, no performances) |
+| GET | `/events/{city}/{year}` | Get event by city and year (with performances, no laps) |
+| GET | `/events/{city}/{year}/graph` | Get ECharts-ready graph data (cumulative miles over time) |
+| GET | `/events/by-city/{city}` | Get all events for a city |
+| GET | `/events/{year}` | Get event by year (legacy) |
 | GET | `/performances/year/{year}` | All performances for a year |
 | GET | `/performances/year/{year}/sport/{sport}` | Performances filtered by sport |
 | GET | `/performances/year/{year}/top/{n}` | Top N performers by distance |
+
+## Frontend Pages
+
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Home.vue | Welcome page with navigation links |
+| `/event` | EventGrid.vue | DataTable view of performances with multi-event selection and sport filter |
+| `/event/graph` | EventGraph.vue | ECharts line chart of cumulative miles over time, with athlete checkbox panel |
+
+### Multi-event selection pattern
+
+Both EventGrid and EventGraph use the same selection pattern:
+- **URL**: Query params like `/event?event=homestead_2024&event=homestead_2023`
+- **Slug**: Frontend-only convention (`city_year`) derived via `toSlug()` — not stored in backend models
+- **Dropdown**: PrimeVue MultiSelect with chip display
+- **Sport filter**: PrimeVue SelectButton (Skateboard/Inline/Quad), disabled options based on available sports
+- **Default**: Redirects to most recent event if no query params
 
 ## Code Conventions
 
 ### Frontend
 
 - **Component style**: Vue 3 Composition API with `<script setup lang="ts">`
-- **File naming**: PascalCase for components and pages (`Header.vue`, `Event.vue`)
-- **Import aliases**: Use `@/` to reference `frontend/src/` (e.g., `import { fetchEventByYear } from '@/fetch/fetchEvents'`)
+- **File naming**: PascalCase for components and pages (`Header.vue`, `EventGrid.vue`)
+- **Import aliases**: Use `@/` to reference `frontend/src/` (e.g., `import { fetchEventByCityYear } from '@/fetch/fetchEvents'`)
 - **State management**: Local component state with `ref()` and `computed()` — no Pinia/Vuex store
 - **Formatting** (Prettier):
   - No semicolons
   - Single quotes
   - 4-space indentation
   - 120 character line width
-- **UI components**: Use PrimeVue for data tables, selects, buttons. Use Tailwind utility classes for layout and styling.
+- **UI components**: Use PrimeVue for data tables, selects, buttons, checkboxes. Use Tailwind utility classes for layout and styling.
+- **Charts**: Use vue-echarts (`VChart`) with manual ECharts module registration (tree-shaking). Import only needed chart types and components.
 - **Theme colors**: Amber/orange primary (`#f59e0b`), Slate secondary, dark backgrounds (`bg-gray-900`)
 
 ### Backend
 
 - **Import order**: stdlib, then third-party, then local modules
 - **Type hints**: Use modern Python syntax (`str | None` not `Optional[str]`)
-- **Models**: Classes with `to_dict()` / `from_dict()` serialization methods
+- **Models**: Classes with `to_dict()` / `from_dict()` serialization methods. `to_dict()` accepts `performances` and `laps` booleans to control output size.
+- **Graph data**: `Performance.to_graph_dict()` returns ECharts-ready `[hours, miles]` data points — backend pre-computes cumulative values so frontend doesn't transform data.
 - **Collections**: Registry pattern (`EventRegistry`, `AthleteRegistry`) for in-memory data
 - **Route organization**: Separate router files per domain, mounted with prefix (e.g., `/events`, `/performances`)
 - **Data loading**: JSON files from `scraped_events_save/` loaded at startup via `api/loader.py` into `EventRegistry`
@@ -125,7 +148,7 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 2. **Storage**: Scraped data saved as JSON in `backend/scraped_events_save/`
 3. **Loading**: On API startup, `api/loader.py` reads all JSON files into `EventRegistry` (in-memory)
 4. **Serving**: FastAPI routes serialize `Event`/`Performance` models to JSON responses
-5. **Display**: Vue frontend fetches data via API client and renders with PrimeVue DataTable
+5. **Display**: Vue frontend fetches data via API client and renders with PrimeVue DataTable or ECharts
 
 ## Key Files
 
@@ -133,16 +156,17 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 |------|---------|
 | `frontend/src/main.ts` | Vue app initialization, PrimeVue theme setup |
 | `frontend/src/App.vue` | Root component (Header + router-view) |
-| `frontend/src/pages/Event.vue` | Main data display page with filtering |
+| `frontend/src/pages/EventGrid.vue` | DataTable view with multi-event selection |
+| `frontend/src/pages/EventGraph.vue` | ECharts line chart with athlete checkbox panel |
 | `frontend/src/router/index.ts` | Route definitions |
 | `frontend/src/fetch/fetchEvents.tsx` | API client for event endpoints |
 | `backend/api/app.py` | FastAPI app creation, CORS, router mounting |
 | `backend/api/loader.py` | Startup data loading from JSON files |
-| `backend/api/routes/events.py` | Event API endpoints |
+| `backend/api/routes/events.py` | Event API endpoints (list, by city/year, graph) |
 | `backend/api/routes/performances.py` | Performance API endpoints |
 | `backend/models/event.py` | Event data model |
-| `backend/models/performance.py` | Performance data model |
-| `backend/models/event_registry.py` | In-memory event collection |
+| `backend/models/performance.py` | Performance data model (includes `to_graph_dict()`) |
+| `backend/models/event_registry.py` | In-memory event collection with lookup methods |
 
 ## Testing
 
@@ -155,3 +179,4 @@ No test infrastructure is currently set up. There are no test files, test runner
 - The frontend API URL is hardcoded, not environment-configurable
 - Node.js version requirement: `^20.19.0 || >=22.12.0`
 - The backend uses `uv` (not pip) for Python package management; lockfile is `uv.lock`
+- Development runs via Docker Compose with volume mounts for hot-reloading

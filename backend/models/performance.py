@@ -218,6 +218,22 @@ class Performance:
         total_miles = self.event.track.length_miles
         return self._calculate_average_speed(total_miles, lap_time_ss, "kph")
 
+    def to_graph_dict(self) -> dict:
+        """Return ECharts-ready data: cumulative [hours, miles] per lap."""
+        cumulative_time_ss = 0
+        data = [[0, 0]]
+        for i, lap in enumerate(self.laps, start=1):
+            cumulative_time_ss += lap.lap_time_ss
+            hours = round(cumulative_time_ss / 3600, 4)
+            miles = round(self.event.track.length_miles * i, 2)
+            data.append([hours, miles])
+        return {
+            "athlete": self.athlete.name,
+            "sport": self.sport,
+            "total_miles": self.total_miles(),
+            "data": data,
+        }
+
     def to_dict(self, laps: bool = True) -> dict:
         performance_dic = {
             "athlete": self.athlete.to_dict(),
