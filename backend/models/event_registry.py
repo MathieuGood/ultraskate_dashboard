@@ -11,17 +11,17 @@ class EventRegistry:
         return True
 
     @classmethod
-    def get_by_city_year(cls, city: str, year: int) -> Event | None:
+    def get_by_name_year(cls, name: str, year: int) -> Event | None:
         for event in cls.events:
-            if event.track.city.lower() == city.lower() and event.date.year == year:
+            if event.name.lower() == name.lower() and event.date.year == year:
                 return event
         return None
 
     @classmethod
-    def get_by_city(cls, city: str) -> list[Event]:
+    def get_by_name(cls, name: str) -> list[Event]:
         return [
             event for event in cls.events
-            if event.track.city.lower() == city.lower()
+            if event.name.lower() == name.lower()
         ]
 
     @classmethod

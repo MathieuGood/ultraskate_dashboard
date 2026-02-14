@@ -20,7 +20,7 @@ def load_events() -> bool:
             event = Event.from_json_file(file)
             EventRegistry.add_event(event)
             EventRegistry.sort_all_performances()
-            print(f"✓ Chargé: {event.track.city} {event.date.year}")
+            print(f"✓ Chargé: {event.name} {event.date.year}")
         except Exception as e:
             print(f"✗ Erreur lors du chargement {file}: {e}")
 

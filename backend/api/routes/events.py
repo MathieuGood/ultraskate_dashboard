@@ -14,21 +14,21 @@ async def get_all_events():
     return [event.to_dict(performances=False) for event in events]
 
 
-@router.get("/{city}/{year}")
-async def get_event_by_city_year(city: str, year: int):
-    """Get event by city and year"""
-    event = EventRegistry.get_by_city_year(city, year)
+@router.get("/{name}/{year}")
+async def get_event_by_name_year(name: str, year: int):
+    """Get event by name and year"""
+    event = EventRegistry.get_by_name_year(name, year)
     if event is None:
-        return {"error": f"Event not found for city '{city}', year {year}"}
+        return {"error": f"Event not found for name '{name}', year {year}"}
     return event.to_dict(laps=False)
 
 
-@router.get("/{city}/{year}/graph")
-async def get_event_graph_data(city: str, year: int):
+@router.get("/{name}/{year}/graph")
+async def get_event_graph_data(name: str, year: int):
     """Get ECharts-ready graph data for an event (cumulative miles over time)"""
-    event = EventRegistry.get_by_city_year(city, year)
+    event = EventRegistry.get_by_name_year(name, year)
     if event is None:
-        return {"error": f"Event not found for city '{city}', year {year}"}
+        return {"error": f"Event not found for name '{name}', year {year}"}
     return {
         "performances": [
             perf.to_graph_dict() for perf in event.performances
@@ -36,12 +36,12 @@ async def get_event_graph_data(city: str, year: int):
     }
 
 
-@router.get("/by-city/{city}")
-async def get_events_by_city(city: str):
-    """Get all events for a given city"""
-    events = EventRegistry.get_by_city(city)
+@router.get("/by-name/{name}")
+async def get_events_by_name(name: str):
+    """Get all events for a given name"""
+    events = EventRegistry.get_by_name(name)
     if not events:
-        return {"error": f"No events found for city '{city}'"}
+        return {"error": f"No events found for name '{name}'"}
     return [event.to_dict(laps=False) for event in events]
 
 

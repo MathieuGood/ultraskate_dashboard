@@ -5,7 +5,7 @@ import MultiSelect from 'primevue/multiselect'
 import SelectButton from 'primevue/selectbutton'
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { fetchEventByCityYear, fetchAllEvents } from '@/fetch/fetchEvents'
+import { fetchEventByNameYear, fetchAllEvents } from '@/fetch/fetchEvents'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,8 +21,8 @@ const options = ref([
 const value = ref('Skateboard')
 
 const toSlug = (evt) => {
-    const city = evt.track.city.toLowerCase().replace(/ /g, '-')
-    return `${city}_${new Date(evt.date).getFullYear()}`
+    const name = evt.name.toLowerCase().replace(/ /g, '-')
+    return `${name}_${new Date(evt.date).getFullYear()}`
 }
 
 const getSelectedSlugsFromQuery = () => {
@@ -35,8 +35,8 @@ const fetchEvents = async (slugs) => {
     const newSlugs = slugs.filter((s) => !(s in events.value))
     await Promise.all(
         newSlugs.map(async (slug) => {
-            const [city, year] = slug.split('_')
-            const data = await fetchEventByCityYear(city, year)
+            const [name, year] = slug.split('_')
+            const data = await fetchEventByNameYear(name, year)
             if (!data.error) events.value[slug] = data
         }),
     )
@@ -63,9 +63,9 @@ const updateSportOptions = () => {
 const allPerformances = computed(() => {
     const result = []
     for (const [slug, evt] of Object.entries(events.value)) {
-        const city = evt.track?.city || ''
+        const name = evt.name || ''
         const year = new Date(evt.date).getFullYear()
-        const eventLabel = `${city} ${year}`
+        const eventLabel = `${name} ${year}`
         for (const perf of evt.performances || []) {
             result.push({ ...perf, eventLabel })
         }
@@ -85,7 +85,7 @@ const eventListOptions = computed(() => {
     return eventList.value.map((evt) => {
         const dateObj = new Date(evt.date)
         return {
-            label: `${evt.track.city} ${dateObj.getFullYear()}`,
+            label: `${evt.name} ${dateObj.getFullYear()}`,
             value: toSlug(evt),
         }
     })

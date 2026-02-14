@@ -11,12 +11,12 @@ export const fetchEventByYear = async (year: number) => {
     return response.json()
 }
 
-export const fetchEventByCityYear = async (city: string, year: string) => {
-    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${city}/${year}`)
+export const fetchEventByNameYear = async (name: string, year: string) => {
+    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${name}/${year}`)
     return response.json()
 }
 
-export const fetchEventGraphData = async (city: string, year: string) => {
-    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${city}/${year}/graph`)
+export const fetchEventGraphData = async (name: string, year: string) => {
+    const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/${name}/${year}/graph`)
     return response.json()
 }

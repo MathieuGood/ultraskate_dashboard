@@ -11,7 +11,7 @@ import {
 import VChart from 'vue-echarts'
 import MultiSelect from 'primevue/multiselect'
 import SelectButton from 'primevue/selectbutton'
-import Checkbox from 'primevue/checkbox'
+import Button from 'primevue/button'
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { fetchEventGraphData, fetchAllEvents } from '@/fetch/fetchEvents'
@@ -33,8 +33,8 @@ const sportOptions = ref([
 const selectedSport = ref('Skateboard')
 
 const toSlug = (evt) => {
-    const city = evt.track.city.toLowerCase().replace(/ /g, '-')
-    return `${city}_${new Date(evt.date).getFullYear()}`
+    const name = evt.name.toLowerCase().replace(/ /g, '-')
+    return `${name}_${new Date(evt.date).getFullYear()}`
 }
 
 const getSelectedSlugsFromQuery = () => {
@@ -47,8 +47,8 @@ const fetchGraphEvents = async (slugs) => {
     const newSlugs = slugs.filter((s) => !(s in graphData.value))
     await Promise.all(
         newSlugs.map(async (slug) => {
-            const [city, year] = slug.split('_')
-            const data = await fetchEventGraphData(city, year)
+            const [name, year] = slug.split('_')
+            const data = await fetchEventGraphData(name, year)
             if (!data.error) graphData.value[slug] = data
         }),
     )
@@ -76,9 +76,9 @@ const filteredPerformances = computed(() => {
     const result = []
     for (const [slug, evt] of Object.entries(graphData.value)) {
         const parts = slug.split('_')
-        const city = parts[0]
+        const name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
         const year = parts[1]
-        const eventLabel = selectedSlugs.value.length > 1 ? `${city} ${year}` : ''
+        const eventLabel = selectedSlugs.value.length > 1 ? `${name} ${year}` : ''
         for (const perf of evt.performances || []) {
             if (perf.sport.toLowerCase().includes(selectedSport.value.toLowerCase())) {
                 const athleteKey = eventLabel ? `${perf.athlete} (${eventLabel})` : perf.athlete
@@ -89,9 +89,16 @@ const filteredPerformances = computed(() => {
     return result.sort((a, b) => b.total_miles - a.total_miles)
 })
 
-// Available athletes for the checkbox panel
+// Available athletes for the MultiSelect dropdown
 const athleteList = computed(() => {
     return filteredPerformances.value.map((p) => p.athleteKey)
+})
+
+const athleteOptions = computed(() => {
+    return filteredPerformances.value.map((p) => ({
+        label: p.athleteKey,
+        value: p.athleteKey,
+    }))
 })
 
 // Auto-select top 5 when filtered performances change
@@ -157,7 +164,7 @@ const eventListOptions = computed(() => {
     return eventList.value.map((evt) => {
         const dateObj = new Date(evt.date)
         return {
-            label: `${evt.track.city} ${dateObj.getFullYear()}`,
+            label: `${evt.name} ${dateObj.getFullYear()}`,
             value: toSlug(evt),
         }
     })
@@ -211,42 +218,37 @@ fetchAllEvents()
 <template>
     <div class="p-4 flex flex-col h-[calc(100vh-44px)]">
         <div class="flex items-center justify-center pb-4 gap-5">
-            <MultiSelect
-                v-model="selectedSlugs"
-                :options="eventListOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select Events"
-                display="chip"
-                class="w-full md:w-80"
-            />
+            <MultiSelect v-model="selectedSlugs" :options="eventListOptions" optionLabel="label" optionValue="value"
+                placeholder="Select Events" display="chip" class="w-full md:w-80" />
 
             <div class="card flex justify-center">
-                <SelectButton
-                    v-model="selectedSport"
-                    :options="sportOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    optionDisabled="disabled"
-                />
+                <SelectButton v-model="selectedSport" :options="sportOptions" optionLabel="label" optionValue="value"
+                    optionDisabled="disabled" />
             </div>
         </div>
 
         <div class="flex flex-1 gap-4 min-h-0">
-            <!-- Athlete checkbox panel -->
-            <div class="w-64 shrink-0 overflow-y-auto border border-gray-700 rounded-lg p-3">
-                <div class="text-sm font-semibold text-gray-300 mb-2">
-                    Athletes ({{ checkedAthletes.length }}/{{ athleteList.length }})
+            <!-- Athlete selection panel -->
+            <div class="w-64 shrink-0 flex flex-col border border-gray-700 rounded-lg p-3 min-h-0">
+                <MultiSelect v-model="checkedAthletes" :options="athleteOptions" optionLabel="label" optionValue="value"
+                    filter placeholder="Search athletes..." :maxSelectedLabels="0"
+                    :selectedItemsLabel="`${checkedAthletes.length} selected`" class="w-full mb-2" />
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-gray-300">
+                        Selected ({{ checkedAthletes.length }})
+                    </span>
+                    <Button v-if="checkedAthletes.length" icon="pi pi-search" label="Clear" severity="danger" text
+                        size="small" @click="checkedAthletes = []" />
                 </div>
-                <div v-for="athlete in athleteList" :key="athlete" class="flex items-center gap-2 py-1">
-                    <Checkbox
-                        v-model="checkedAthletes"
-                        :inputId="athlete"
-                        :value="athlete"
-                    />
-                    <label :for="athlete" class="text-sm text-gray-300 cursor-pointer truncate">
-                        {{ athlete }}
-                    </label>
+                <div class="overflow-y-auto flex-1">
+                    <div v-for="athlete in checkedAthletes" :key="athlete"
+                        class="flex items-center justify-between py-1 px-1 text-sm text-gray-300 hover:bg-gray-800 rounded">
+                        <span class="truncate">{{ athlete }}</span>
+                        <button class="text-gray-500 hover:text-red-400 ml-1 shrink-0"
+                            @click="checkedAthletes = checkedAthletes.filter((a) => a !== athlete)">
+                            &times;
+                        </button>
+                    </div>
                 </div>
             </div>
 
