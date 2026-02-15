@@ -110,7 +110,7 @@ watch(filteredPerformances, (perfs) => {
 // ECharts option
 const chartOption = computed(() => {
     const series = filteredPerformances.value
-        .filter((p) => checkedAthletes.value.includes(p.athleteKey))
+        .filter((performance) => checkedAthletes.value.includes(performance.athleteKey))
         .map((p) => ({
             name: p.athleteKey,
             type: 'line',
