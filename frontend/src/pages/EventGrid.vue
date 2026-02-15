@@ -1,3 +1,24 @@
+<!--
+  EventGrid.vue — DataTable view of race performances.
+
+  Displays all performances in a sortable PrimeVue DataTable with multi-event
+  selection and sport filtering. Shows an "Event" column when multiple events
+  are selected so the user can distinguish rows.
+
+  Vue concepts for React developers:
+  - ref()      → like useState(), creates a reactive variable. Access via .value in JS, direct in template.
+  - computed() → like useMemo(), auto-recomputes when dependencies change. Read-only.
+  - watch()    → like useEffect() with a dependency array. Runs a callback when watched value changes.
+  - <script setup> → the component body itself (no return statement needed, everything is auto-exposed to template).
+  - v-model    → two-way binding (like value + onChange combined). PrimeVue components use this for selection state.
+  - v-for      → like .map() in JSX, but declarative in the template.
+  - v-if       → like conditional rendering with {condition && <Component/>}.
+
+  URL sync pattern (shared with EventGraph):
+  - Selected events are stored as query params: /event?event=homestead_2024&event=homestead_2023
+  - Two watchers keep URL and component state in sync (dropdown → URL, URL → fetch).
+  - `updatingFromQuery` flag prevents infinite loops between the two watchers.
+-->
 <script setup>
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -6,11 +27,14 @@ import SelectButton from 'primevue/selectbutton'
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { fetchEventByNameYear, fetchAllEvents } from '@/fetch/fetchEvents'
+import { toSlug } from '@/utils/eventSlug'
 
 const router = useRouter()
 const route = useRoute()
 
-const events = ref({})
+// --- State ---
+
+const events = ref({}) // Keyed by slug: { [slug]: { performances, ... } }
 const selectedSlugs = ref([])
 const eventList = ref([])
 const options = ref([
@@ -20,17 +44,16 @@ const options = ref([
 ])
 const value = ref('Skateboard')
 
-const toSlug = (evt) => {
-    const name = evt.name.toLowerCase().replace(/ /g, '-')
-    return `${name}_${new Date(evt.date).getFullYear()}`
-}
+// --- Data fetching ---
 
+/** Parse event slugs from the URL query string (?event=slug1&event=slug2). */
 const getSelectedSlugsFromQuery = () => {
     const raw = route.query.event
     if (!raw) return []
     return Array.isArray(raw) ? raw.filter(Boolean) : [raw]
 }
 
+/** Fetch event data for new slugs, remove data for deselected ones. */
 const fetchEvents = async (slugs) => {
     const newSlugs = slugs.filter((s) => !(s in events.value))
     await Promise.all(
@@ -40,12 +63,12 @@ const fetchEvents = async (slugs) => {
             if (!data.error) events.value[slug] = data
         }),
     )
-    // Clean up deselected events
     for (const key of Object.keys(events.value)) {
         if (!slugs.includes(key)) delete events.value[key]
     }
 }
 
+/** Disable sport options that have no performances in the current selection. */
 const updateSportOptions = () => {
     const allPerfs = Object.values(events.value).flatMap((evt) => evt.performances || [])
     const sports = allPerfs.map((p) => p.sport.toLowerCase())
@@ -60,6 +83,9 @@ const updateSportOptions = () => {
     }
 }
 
+// --- Computed data ---
+
+/** All performances flattened across selected events, with an eventLabel for display. */
 const allPerformances = computed(() => {
     const result = []
     for (const [slug, evt] of Object.entries(events.value)) {
@@ -79,7 +105,10 @@ const filteredPerformances = computed(() => {
     )
 })
 
+/** Show "Event" column only when comparing multiple events. */
 const showEventColumn = computed(() => selectedSlugs.value.length > 1)
+
+// --- Event list dropdown ---
 
 const eventListOptions = computed(() => {
     return eventList.value.map((evt) => {
@@ -91,7 +120,11 @@ const eventListOptions = computed(() => {
     })
 })
 
-// Watch dropdown selection -> update URL
+// --- URL ↔ state synchronization ---
+// Two watchers form a bidirectional sync between selectedSlugs and the URL query.
+// The `updatingFromQuery` flag prevents the dropdown→URL watcher from firing
+// when we're updating state FROM the URL (which would cause an infinite loop).
+
 let updatingFromQuery = false
 watch(selectedSlugs, (newSlugs) => {
     if (updatingFromQuery) return
@@ -99,7 +132,6 @@ watch(selectedSlugs, (newSlugs) => {
     router.push({ name: 'EventGrid', query })
 })
 
-// Watch route query -> sync state and fetch data
 watch(
     () => route.query.event,
     async (newVal) => {
@@ -115,12 +147,11 @@ watch(
     { immediate: true },
 )
 
-// Load event list for dropdown, redirect if no query params
+// On mount: load all events for the dropdown, redirect to most recent if no query params
 fetchAllEvents()
     .then((response) => {
         eventList.value = response
         if (!route.query.event) {
-            // Redirect to most recent event
             if (response.length) {
                 const sorted = [...response].sort(
                     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
@@ -140,6 +171,7 @@ fetchAllEvents()
 
 <template>
     <div class="p-4">
+        <!-- Toolbar: event selector + sport filter -->
         <div class="flex items-center justify-center pb-4 gap-5">
             <MultiSelect
                 v-model="selectedSlugs"

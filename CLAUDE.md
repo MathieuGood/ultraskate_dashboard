@@ -16,6 +16,7 @@ UltraskateDashboard/
 │       ├── pages/        # Route-level page components (Home, EventGrid, EventGraph)
 │       ├── router/       # Vue Router configuration
 │       ├── fetch/        # API client functions
+│       ├── utils/        # Shared utilities (eventSlug)
 │       └── css/          # Global styles (Tailwind imports)
 ├── backend/           # Python FastAPI application
 │   ├── api/              # FastAPI app setup, routes, and data loader
@@ -100,15 +101,17 @@ Base URL: `http://localhost:8000`
 |-------|------|-------------|
 | `/` | Home.vue | Welcome page with navigation links |
 | `/event` | EventGrid.vue | DataTable view of performances with multi-event selection and sport filter |
-| `/event/graph` | EventGraph.vue | ECharts line chart of cumulative miles over time, with athlete checkbox panel |
+| `/event/graph` | EventGraph.vue | ECharts line chart with metric toggle (distance/speed), unit toggle (mi/km), and athlete selection panel |
 
 ### Multi-event selection pattern
 
 Both EventGrid and EventGraph use the same selection pattern:
 - **URL**: Query params like `/event?event=homestead_2024&event=homestead_2023`
-- **Slug**: Frontend-only convention (`city_year`) derived via `toSlug()` — not stored in backend models
+- **Slug**: Frontend-only convention (`city_year`) derived via `toSlug()` from `utils/eventSlug.ts` — not stored in backend models
 - **Dropdown**: PrimeVue MultiSelect with chip display
 - **Sport filter**: PrimeVue SelectButton (Skateboard/Inline/Quad), disabled options based on available sports
+- **Metric toggle** (graph only): SelectButton to switch between "Total distance" and "Average speed"
+- **Unit toggle** (graph only): SelectButton to switch between imperial (mi/mph) and metric (km/km·h)
 - **Default**: Redirects to most recent event if no query params
 
 ## Code Conventions
@@ -126,14 +129,15 @@ Both EventGrid and EventGraph use the same selection pattern:
   - 120 character line width
 - **UI components**: Use PrimeVue for data tables, selects, buttons, checkboxes. Use Tailwind utility classes for layout and styling.
 - **Charts**: Use vue-echarts (`VChart`) with manual ECharts module registration (tree-shaking). Import only needed chart types and components.
-- **Theme colors**: Amber/orange primary (`#f59e0b`), Slate secondary, dark backgrounds (`bg-gray-900`)
+- **Theme colors**: Amber/orange primary (`#f59e0b`), Slate secondary. Use PrimeVue design tokens (`text-muted-color`, `border-surface`) over hardcoded Tailwind colors for theme compatibility.
+- **PrimeVue components used**: DataTable, Column, MultiSelect, SelectButton, Button, Chip. Use `autoFilterFocus` on MultiSelect with filter for better UX.
 
 ### Backend
 
 - **Import order**: stdlib, then third-party, then local modules
 - **Type hints**: Use modern Python syntax (`str | None` not `Optional[str]`)
 - **Models**: Classes with `to_dict()` / `from_dict()` serialization methods. `to_dict()` accepts `performances` and `laps` booleans to control output size.
-- **Graph data**: `Performance.to_graph_dict()` returns ECharts-ready `[hours, miles]` data points — backend pre-computes cumulative values so frontend doesn't transform data.
+- **Graph data**: `Performance.to_graph_dict()` returns ECharts-ready data with two arrays: `data` (`[hours, miles]`) for distance and `speed_data` (`[hours, avg_mph]`) for speed — backend pre-computes cumulative values so frontend doesn't transform data. Unit conversion (mi→km, mph→kph) is done client-side.
 - **Collections**: Registry pattern (`EventRegistry`, `AthleteRegistry`) for in-memory data
 - **Route organization**: Separate router files per domain, mounted with prefix (e.g., `/events`, `/performances`)
 - **Data loading**: JSON files from `scraped_events_save/` loaded at startup via `api/loader.py` into `EventRegistry`
@@ -157,7 +161,8 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 | `frontend/src/main.ts` | Vue app initialization, PrimeVue theme setup |
 | `frontend/src/App.vue` | Root component (Header + router-view) |
 | `frontend/src/pages/EventGrid.vue` | DataTable view with multi-event selection |
-| `frontend/src/pages/EventGraph.vue` | ECharts line chart with athlete checkbox panel |
+| `frontend/src/pages/EventGraph.vue` | ECharts line chart with metric/unit toggles and athlete panel |
+| `frontend/src/utils/eventSlug.ts` | Shared `toSlug()` utility for event slug generation |
 | `frontend/src/router/index.ts` | Route definitions |
 | `frontend/src/fetch/fetchEvents.tsx` | API client for event endpoints |
 | `backend/api/app.py` | FastAPI app creation, CORS, router mounting |
