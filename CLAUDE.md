@@ -13,14 +13,14 @@ UltraskateDashboard/
 ├── frontend/          # Vue 3 + Vite + TypeScript SPA
 │   └── src/
 │       ├── components/   # Reusable Vue components (Header.vue)
-│       ├── pages/        # Route-level page components (Home, EventGrid, EventGraph)
+│       ├── pages/        # Route-level page components (Home, EventGrid, EventGraph, AthletesGrid)
 │       ├── router/       # Vue Router configuration
 │       ├── fetch/        # API client functions
 │       ├── utils/        # Shared utilities (eventSlug)
 │       └── css/          # Global styles (Tailwind imports)
 ├── backend/           # Python FastAPI application
 │   ├── api/              # FastAPI app setup, routes, and data loader
-│   │   └── routes/       # Endpoint definitions (base, events, performances)
+│   │   └── routes/       # Endpoint definitions (base, events, performances, athletes)
 │   ├── models/           # Data models (Event, Athlete, Performance, Track, etc.)
 │   ├── webscraper/       # Playwright + BeautifulSoup scrapers
 │   └── scraped_events_save/  # JSON data files (loaded at API startup)
@@ -91,6 +91,7 @@ Base URL: `http://localhost:8000`
 | GET | `/events/{city}/{year}/graph` | Get ECharts-ready graph data (cumulative miles over time) |
 | GET | `/events/by-city/{city}` | Get all events for a city |
 | GET | `/events/{year}` | Get event by year (legacy) |
+| GET | `/athletes` | All athletes with aggregated career stats |
 | GET | `/performances/year/{year}` | All performances for a year |
 | GET | `/performances/year/{year}/sport/{sport}` | Performances filtered by sport |
 | GET | `/performances/year/{year}/top/{n}` | Top N performers by distance |
@@ -101,6 +102,7 @@ Base URL: `http://localhost:8000`
 |-------|------|-------------|
 | `/` | Home.vue | Welcome page with navigation links |
 | `/event` | EventGrid.vue | DataTable view of performances with multi-event selection and sport filter |
+| `/athletes` | AthletesGrid.vue | DataTable of all athletes with aggregated career stats, search, sport/gender filters |
 | `/event/graph` | EventGraph.vue | ECharts line chart with metric toggle (distance/speed), unit toggle (mi/km), and athlete selection panel |
 
 ### Multi-event selection pattern
@@ -130,7 +132,7 @@ Both EventGrid and EventGraph use the same selection pattern:
 - **UI components**: Use PrimeVue for data tables, selects, buttons, checkboxes. Use Tailwind utility classes for layout and styling.
 - **Charts**: Use vue-echarts (`VChart`) with manual ECharts module registration (tree-shaking). Import only needed chart types and components.
 - **Theme colors**: Amber/orange primary (`#f59e0b`), Slate secondary. Use PrimeVue design tokens (`text-muted-color`, `border-surface`) over hardcoded Tailwind colors for theme compatibility.
-- **PrimeVue components used**: DataTable, Column, MultiSelect, SelectButton, Button, Chip. Use `autoFilterFocus` on MultiSelect with filter for better UX.
+- **PrimeVue components used**: DataTable, Column, MultiSelect, SelectButton, Button, Chip, InputText. Use `autoFilterFocus` on MultiSelect with filter for better UX.
 
 ### Backend
 
@@ -164,11 +166,14 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 | `frontend/src/pages/EventGraph.vue` | ECharts line chart with metric/unit toggles and athlete panel |
 | `frontend/src/utils/eventSlug.ts` | Shared `toSlug()` utility for event slug generation |
 | `frontend/src/router/index.ts` | Route definitions |
+| `frontend/src/pages/AthletesGrid.vue` | Athletes DataTable with career stats |
+| `frontend/src/fetch/fetchAthletes.ts` | API client for athletes endpoint |
 | `frontend/src/fetch/fetchEvents.tsx` | API client for event endpoints |
 | `backend/api/app.py` | FastAPI app creation, CORS, router mounting |
 | `backend/api/loader.py` | Startup data loading from JSON files |
 | `backend/api/routes/events.py` | Event API endpoints (list, by city/year, graph) |
 | `backend/api/routes/performances.py` | Performance API endpoints |
+| `backend/api/routes/athletes.py` | Athletes endpoint with career stat aggregation |
 | `backend/models/event.py` | Event data model |
 | `backend/models/performance.py` | Performance data model (includes `to_graph_dict()`) |
 | `backend/models/event_registry.py` | In-memory event collection with lookup methods |
@@ -179,7 +184,6 @@ No test infrastructure is currently set up. There are no test files, test runner
 
 ## Notes
 
-- The `Athlete.vue` page is a stub — not yet implemented
 - CORS is wide open (`allow_origins=["*"]`) — suitable for development only
 - The frontend API URL is hardcoded, not environment-configurable
 - Node.js version requirement: `^20.19.0 || >=22.12.0`

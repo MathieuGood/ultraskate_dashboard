@@ -31,10 +31,17 @@ class AthleteRegistry:
         key = athlete.canonical_name
 
         if key in cls._by_canonical:
-            print(
-                f"Duplicate athlete name detected: '{athlete.name}' (canonical: '{key}'). "
-            )
-            return cls._by_canonical[key]
+            existing = cls._by_canonical[key]
+            # Backfill empty fields from the new occurrence
+            if not existing.city and athlete.city:
+                existing.city = athlete.city
+            if not existing.state and athlete.state:
+                existing.state = athlete.state
+            if not existing.country and athlete.country:
+                existing.country = athlete.country
+            if not existing.gender and athlete.gender:
+                existing.gender = athlete.gender
+            return existing
 
         cls._by_canonical[key] = athlete
         cls.athletes.append(athlete)

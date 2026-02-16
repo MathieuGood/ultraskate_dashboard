@@ -6,6 +6,7 @@
     <nav class="flex gap-4">
       <router-link to="/" class="text-white hover:text-yellow-300">Home</router-link>
       <router-link to="/event" class="text-white hover:text-yellow-300">Grid</router-link>
+      <router-link to="/athletes" class="text-white hover:text-yellow-300">Athletes</router-link>
       <router-link to="/event/graph" class="text-white hover:text-yellow-300">Graph</router-link>
     </nav>
   </div>

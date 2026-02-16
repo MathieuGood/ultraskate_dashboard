@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from anyio import to_thread
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import events, performances, base
+from api.routes import events, performances, athletes, base
 from api.loader import load_events
 
 
@@ -41,3 +41,4 @@ app.add_middleware(
 app.include_router(base.router)
 app.include_router(events.router)
 app.include_router(performances.router)
+app.include_router(athletes.router)

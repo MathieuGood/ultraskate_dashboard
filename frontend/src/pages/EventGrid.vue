@@ -96,6 +96,7 @@ const allPerformances = computed(() => {
             result.push({ ...perf, eventLabel })
         }
     }
+    result.sort((a, b) => b.total_laps - a.total_laps)
     return result
 })
 
@@ -194,7 +195,7 @@ fetchAllEvents()
             </div>
         </div>
 
-        <DataTable :value="filteredPerformances" sortMode="multiple" tableStyle="{}">
+        <DataTable :value="filteredPerformances" sortMode="multiple" paginator :rows="50" :rowsPerPageOptions="[50, 100, 200]" tableStyle="{}">
             <Column header="#">
                 <template #body="slotProps">
                     {{ (slotProps.rowIndex ?? slotProps.index ?? 0) + 1 }}
