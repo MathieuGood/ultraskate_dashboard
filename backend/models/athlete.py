@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from models.athlete_aliases import ATHLETE_ALIASES
+
 
 class Athlete:
     def __init__(
@@ -18,6 +20,18 @@ class Athlete:
         self.state = state
         self.country = country
         self.team = False
+
+    @property
+    def canonical_name(self) -> str:
+        """Return the canonical name for this athlete.
+
+        Resolves aliases (nicknames, typos, accent variations) and normalizes
+        casing so that the same person is always identified by one key.
+        """
+        lower = self.name.lower().strip()
+        if lower in ATHLETE_ALIASES:
+            return ATHLETE_ALIASES[lower].lower()
+        return lower
 
     def to_dict(self) -> dict[str, str]:
         return {
@@ -44,7 +58,7 @@ class Athlete:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Athlete):
             return NotImplemented
-        return self.name == other.name
+        return self.canonical_name == other.canonical_name
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return hash(self.canonical_name)

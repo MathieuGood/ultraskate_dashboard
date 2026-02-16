@@ -1,6 +1,7 @@
 from file_manager import FileManager
 from models.event import Event
 from models.event_registry import EventRegistry
+from models.athlete_registry import AthleteRegistry
 
 
 def load_events() -> bool:
@@ -12,7 +13,7 @@ def load_events() -> bool:
     json_files = FileManager.get_all_json_in_dir("scraped_events_save")
 
     if not json_files:
-        print("⚠️  Aucun fichier d'événement trouvé dans 'scraped_events_save/'")
+        print("[WARN] No event files found in 'scraped_events_save/'")
         return False
 
     for file in json_files:
@@ -20,8 +21,13 @@ def load_events() -> bool:
             event = Event.from_json_file(file)
             EventRegistry.add_event(event)
             EventRegistry.sort_all_performances()
-            print(f"✓ Chargé: {event.name} {event.date.year}")
+            print(f"[OK] Loaded: {event.name} {event.date.year}")
         except Exception as e:
-            print(f"✗ Erreur lors du chargement {file}: {e}")
+            print(f"[ERROR] Loading {file}: {e}")
+
+    print(
+        f"[OK] {EventRegistry.count()} events loaded, "
+        f"{AthleteRegistry.count()} unique athletes registered"
+    )
 
     return len(EventRegistry.events) > 0

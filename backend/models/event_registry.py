@@ -28,3 +28,7 @@ class EventRegistry:
     def sort_all_performances(cls) -> None:
         for event in cls.events:
             event.performances.sort(key=lambda p: p.total_miles(), reverse=True)
+
+    @classmethod
+    def count(cls) -> int:
+        return len(cls.events)

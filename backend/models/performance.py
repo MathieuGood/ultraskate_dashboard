@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from models.athlete import Athlete
+from models.athlete_registry import AthleteRegistry
 from models.lap_stats import LapStats
 from utils import Utils
 
@@ -258,7 +259,27 @@ class Performance:
 
     @classmethod
     def from_dict(cls, performance_data: dict, event: Event) -> Performance:
-        athlete = Athlete.from_dict(performance_data["athlete"])
+        raw_athlete = Athlete.from_dict(performance_data["athlete"])
+
+        # Edge case: if this canonical name already has a performance in this
+        # event, they are two different people who happen to share a name
+        # (e.g. Jorge Rodriguez in Miami 2015/2016). Disambiguate by
+        # appending the category to the name.
+        already_in_event = any(
+            p.athlete.canonical_name == raw_athlete.canonical_name
+            for p in event.performances
+        )
+        if already_in_event:
+            category = performance_data.get("category", "")
+            raw_athlete = Athlete(
+                name=f"{raw_athlete.name} ({category})",
+                gender=raw_athlete.gender,
+                city=raw_athlete.city,
+                state=raw_athlete.state,
+                country=raw_athlete.country,
+            )
+
+        athlete = AthleteRegistry.get_or_register(raw_athlete, event)
         laps = []
         for lap_data in performance_data["laps"]:
             lap_time = Utils.convert_time_str_to_seconds(lap_data["time"])
