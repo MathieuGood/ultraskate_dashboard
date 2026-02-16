@@ -92,6 +92,7 @@ Base URL: `http://localhost:8000`
 | GET | `/events/by-city/{city}` | Get all events for a city |
 | GET | `/events/{year}` | Get event by year (legacy) |
 | GET | `/athletes` | All athletes with aggregated career stats |
+| GET | `/athletes/{name}` | Single athlete with per-event performance breakdown |
 | GET | `/performances/year/{year}` | All performances for a year |
 | GET | `/performances/year/{year}/sport/{sport}` | Performances filtered by sport |
 | GET | `/performances/year/{year}/top/{n}` | Top N performers by distance |
@@ -102,7 +103,8 @@ Base URL: `http://localhost:8000`
 |-------|------|-------------|
 | `/` | Home.vue | Welcome page with navigation links |
 | `/event` | EventGrid.vue | DataTable view of performances with multi-event selection and sport filter |
-| `/athletes` | AthletesGrid.vue | DataTable of all athletes with aggregated career stats, search, sport/gender filters |
+| `/athletes` | AthletesGrid.vue | DataTable of all athletes with aggregated career stats, search, sport/gender filters. Row-click navigates to detail. |
+| `/athletes/:name` | AthleteDetail.vue | Single athlete profile with info, career totals, and per-event performance DataTable |
 | `/event/graph` | EventGraph.vue | ECharts line chart with metric toggle (distance/speed), unit toggle (mi/km), and athlete selection panel |
 
 ### Multi-event selection pattern
@@ -167,6 +169,7 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 | `frontend/src/utils/eventSlug.ts` | Shared `toSlug()` utility for event slug generation |
 | `frontend/src/router/index.ts` | Route definitions |
 | `frontend/src/pages/AthletesGrid.vue` | Athletes DataTable with career stats |
+| `frontend/src/pages/AthleteDetail.vue` | Single athlete profile with per-event performances |
 | `frontend/src/fetch/fetchAthletes.ts` | API client for athletes endpoint |
 | `frontend/src/fetch/fetchEvents.tsx` | API client for event endpoints |
 | `backend/api/app.py` | FastAPI app creation, CORS, router mounting |
@@ -182,9 +185,59 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 
 No test infrastructure is currently set up. There are no test files, test runners, or testing dependencies configured for either frontend or backend.
 
+## Future: Live Data Implementation
+
+### Overview
+
+Display real-time race results during a live Ultraskate event by polling MyRaceResult's JSON API and pushing updates to the frontend.
+
+### Architecture (MVP — polling-based)
+
+```
+[MyRaceResult API] --poll every 60s--> [FastAPI background task]
+                                            |
+                                    Update EventRegistry in-memory
+                                            |
+                                    [Existing API endpoints]
+                                            |
+                          [Frontend polls /events/{name}/{year} every 60s]
+```
+
+### Backend
+
+- **Background task**: `asyncio` task in FastAPI that periodically calls MyRaceResult's participant/lap endpoints during a live event
+- **Incremental updates**: detect new laps (compare lap count) and new athletes (new participants appearing mid-race), append to existing `Event` in `EventRegistry` in-place
+- **Live event detection**: needs a mechanism to mark an event as "live" (manual flag, date-based, or API trigger)
+- **Scraper reuse**: `event_scraper.__fetch_participant_performance()` already fetches per-athlete lap data — call it repeatedly in the polling loop
+
+### Frontend
+
+- Reuse EventGrid/EventGraph with auto-refresh (`setInterval` calling existing fetch functions)
+- Visual indicator for "live" status
+- Consider: auto-scroll, position change notifications
+
+### Upgrade path
+
+- **Phase 1**: Frontend polling + backend background task (simplest, no new infra)
+- **Phase 2**: WebSockets or SSE for backend → frontend push (better UX, no wasted requests)
+- FastAPI supports both WebSockets and SSE natively
+
+### Key considerations
+
+- MyRaceResult has no webhooks — polling is the only option
+- Current scraper builds full `Event` objects from scratch — live mode needs incremental lap appending
+- In-memory update (EventRegistry) is the natural fit; no need to write/reload JSON during live events
+- Poll interval: 30-60 seconds is reasonable to avoid rate-limiting
+
 ## Notes
 
-- CORS is wide open (`allow_origins=["*"]`) — suitable for development only
+- CORS: currently wide open (`allow_origins=["*"]`). To lock down for production, use env var in `app.py`:
+  ```python
+  import os
+  origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+  app.add_middleware(CORSMiddleware, allow_origins=origins, ...)
+  ```
+  Then set `ALLOWED_ORIGINS=https://yourdomain.com` in production.
 - The frontend API URL is hardcoded, not environment-configurable
 - Node.js version requirement: `^20.19.0 || >=22.12.0`
 - The backend uses `uv` (not pip) for Python package management; lockfile is `uv.lock`
