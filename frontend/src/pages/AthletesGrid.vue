@@ -5,7 +5,10 @@ import SelectButton from 'primevue/selectbutton'
 import InputText from 'primevue/inputtext'
 import Chip from 'primevue/chip'
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { fetchAllAthletes, type AthleteStats } from '@/fetch/fetchAthletes'
+
+const router = useRouter()
 
 // --- State ---
 
@@ -61,33 +64,29 @@ const filteredAthletes = computed(() => {
 
     return result
 })
+
+const onRowClick = (event: any) => {
+    router.push({ name: 'AthleteDetail', params: { name: event.data.name } })
+}
 </script>
 
 <template>
     <div class="p-4">
         <!-- Toolbar: search + sport filter + gender filter -->
         <div class="flex items-center justify-center pb-4 gap-5 flex-wrap">
-            <InputText v-model="searchQuery" placeholder="Search name, city, state, country..." class="w-full md:w-80" />
+            <InputText v-model="searchQuery" placeholder="Search name, city, state, country..."
+                class="w-full md:w-80" />
 
-            <SelectButton
-                v-model="sportFilter"
-                :options="sportOptions"
-                optionLabel="label"
-                optionValue="value"
-            />
+            <SelectButton v-model="sportFilter" :options="sportOptions" optionLabel="label" optionValue="value" />
 
-            <SelectButton
-                v-model="genderFilter"
-                :options="genderOptions"
-                optionLabel="label"
-                optionValue="value"
-            />
+            <SelectButton v-model="genderFilter" :options="genderOptions" optionLabel="label" optionValue="value" />
         </div>
 
-        <DataTable :value="filteredAthletes" sortMode="multiple" paginator :rows="50" :rowsPerPageOptions="[50, 100, 200]" tableStyle="{}">
+        <DataTable :value="filteredAthletes" sortMode="multiple" paginator :rows="50"
+            :rowsPerPageOptions="[50, 100, 200]" @row-click="onRowClick" class="cursor-pointer" tableStyle="{}">
             <Column header="#">
                 <template #body="slotProps">
-                    {{ (slotProps.rowIndex ?? slotProps.index ?? 0) + 1 }}
+                    {{ (slotProps.index ?? 0) + 1 }}
                 </template>
             </Column>
             <Column field="name" header="Name" sortable />

@@ -50,3 +50,55 @@ async def get_all_athletes():
 
     result.sort(key=lambda a: a["total_miles"], reverse=True)
     return result
+
+
+@router.get("/{name}")
+async def get_athlete_by_name(name: str):
+    """Get a single athlete's info with per-event performance breakdown."""
+    athlete = AthleteRegistry.get_by_name(name)
+    if athlete is None:
+        return {"error": f"Athlete '{name}' not found"}
+
+    performances = []
+    events_seen: set[str] = set()
+    total_miles = 0.0
+    total_km = 0.0
+
+    for event in EventRegistry.events:
+        for perf in event.performances:
+            if perf.athlete.canonical_name != athlete.canonical_name:
+                continue
+            miles = perf.total_miles()
+            km = perf.total_km()
+            total_miles += miles
+            total_km += km
+            event_key = f"{event.name}_{event.date.year}"
+            events_seen.add(event_key)
+            performances.append({
+                "event_name": event.name,
+                "year": event.date.year,
+                "date": event.date.isoformat(),
+                "sport": perf.sport,
+                "category": perf.category,
+                "total_laps": perf.total_laps(),
+                "total_miles": miles,
+                "total_km": km,
+                "average_speed_mph": round(perf.average_speed_mph(), 2),
+                "average_speed_kph": round(perf.average_speed_kph(), 2),
+                "total_time_hhmmss": perf.total_time_hhmmss(),
+            })
+
+    performances.sort(key=lambda p: p["date"])
+
+    return {
+        "name": athlete.name,
+        "gender": athlete.gender,
+        "city": athlete.city,
+        "state": athlete.state,
+        "country": athlete.country,
+        "team": athlete.team,
+        "event_count": len(events_seen),
+        "total_miles": round(total_miles, 2),
+        "total_km": round(total_km, 2),
+        "performances": performances,
+    }
