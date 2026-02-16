@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 class AthleteRegistry:
     athletes: list[Athlete] = []
     _by_canonical: dict[str, Athlete] = {}
+    total_count: int = 0
 
     @classmethod
     def get_or_register(cls, athlete: Athlete, event: Event | None = None) -> Athlete:
@@ -26,9 +27,13 @@ class AthleteRegistry:
         in Miami 2015/2016) is handled upstream in Performance.from_dict()
         by appending the category to the name before calling this method.
         """
+        cls.total_count += 1
         key = athlete.canonical_name
 
         if key in cls._by_canonical:
+            print(
+                f"Duplicate athlete name detected: '{athlete.name}' (canonical: '{key}'). "
+            )
             return cls._by_canonical[key]
 
         cls._by_canonical[key] = athlete

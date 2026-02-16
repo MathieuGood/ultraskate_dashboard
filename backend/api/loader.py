@@ -27,7 +27,7 @@ def load_events() -> bool:
 
     print(
         f"[OK] {EventRegistry.count()} events loaded, "
-        f"{AthleteRegistry.count()} unique athletes registered"
+        f"{AthleteRegistry.count()} unique athletes registered out of {AthleteRegistry.total_count} total athlete entries."
     )
 
     return len(EventRegistry.events) > 0

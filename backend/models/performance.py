@@ -222,14 +222,16 @@ class Performance:
     def to_graph_dict(self) -> dict:
         """Return ECharts-ready data: cumulative [hours, miles] and [hours, avg_mph] per lap."""
         cumulative_time_ss = 0
-        data = [[0, 0]]
-        speed_data = []
+        data: list[list[float]] = [[0, 0]]
+        speed_data: list[list[float]] = []
         for i, lap in enumerate(self.laps, start=1):
             cumulative_time_ss += lap.lap_time_ss
             hours = round(cumulative_time_ss / 3600, 4)
             miles = round(self.event.track.length_miles * i, 2)
             data.append([hours, miles])
-            avg_mph = round(self._calculate_average_speed(miles, cumulative_time_ss, "mph"), 2)
+            avg_mph = round(
+                self._calculate_average_speed(miles, cumulative_time_ss, "mph"), 2
+            )
             speed_data.append([hours, avg_mph])
         return {
             "athlete": self.athlete.name,
@@ -260,25 +262,6 @@ class Performance:
     @classmethod
     def from_dict(cls, performance_data: dict, event: Event) -> Performance:
         raw_athlete = Athlete.from_dict(performance_data["athlete"])
-
-        # Edge case: if this canonical name already has a performance in this
-        # event, they are two different people who happen to share a name
-        # (e.g. Jorge Rodriguez in Miami 2015/2016). Disambiguate by
-        # appending the category to the name.
-        already_in_event = any(
-            p.athlete.canonical_name == raw_athlete.canonical_name
-            for p in event.performances
-        )
-        if already_in_event:
-            category = performance_data.get("category", "")
-            raw_athlete = Athlete(
-                name=f"{raw_athlete.name} ({category})",
-                gender=raw_athlete.gender,
-                city=raw_athlete.city,
-                state=raw_athlete.state,
-                country=raw_athlete.country,
-            )
-
         athlete = AthleteRegistry.get_or_register(raw_athlete, event)
         laps = []
         for lap_data in performance_data["laps"]:
