@@ -156,6 +156,7 @@ class EventScraper:
         athlete = Athlete(
             name=participant_name, gender=participant_gender
         )  # pyright: ignore[reportArgumentType]
+        athlete = AthleteRegistry.get_or_register(athlete)
 
         athlete_performance = Performance(
             athlete=athlete,
@@ -168,9 +169,6 @@ class EventScraper:
         if athlete_performance.total_laps() == 0:
             print(f"No laps found for participant {participant_name}")
             return None
-        # print(athlete_performance)
-
-        AthleteRegistry.add_athlete(athlete)
 
         return athlete_performance
         # https://my4.raceresult.com/192607/RRPublish/data/list?key=9d484a9a9259ff0ae1a4a8570861bc3b&listname=Online%7CLap%20Details&page=live&contest=0&r=pid&pid=421
@@ -340,8 +338,7 @@ class EventScraper:
             state=athlete_state,
             country=athlete_country,
         )
-
-        AthleteRegistry.add_athlete(athlete)
+        athlete = AthleteRegistry.get_or_register(athlete)
 
         return Performance(
             athlete=athlete,
