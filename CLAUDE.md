@@ -31,21 +31,21 @@ UltraskateDashboard/
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
+| Layer              | Technology                                      |
+| ------------------ | ----------------------------------------------- |
 | Frontend framework | Vue 3.5 (Composition API with `<script setup>`) |
-| Build tool | Vite 7 |
-| Language | TypeScript ~5.9 |
-| CSS | Tailwind CSS 4 |
-| UI components | PrimeVue 4 (MidnightAmber theme) |
-| Charts | Apache ECharts via vue-echarts |
-| Routing | Vue Router 4 (history mode) |
-| Backend framework | FastAPI 0.128+ |
-| Python version | >= 3.13 |
-| ASGI server | Uvicorn |
-| Scraping | Playwright + BeautifulSoup4 |
-| Package managers | npm (frontend), uv (backend) |
-| Containerization | Docker + Docker Compose |
+| Build tool         | Vite 7                                          |
+| Language           | TypeScript ~5.9                                 |
+| CSS                | Tailwind CSS 4                                  |
+| UI components      | PrimeVue 4 (MidnightAmber theme)                |
+| Charts             | Apache ECharts via vue-echarts                  |
+| Routing            | Vue Router 4 (history mode)                     |
+| Backend framework  | FastAPI 0.128+                                  |
+| Python version     | >= 3.13                                         |
+| ASGI server        | Uvicorn                                         |
+| Scraping           | Playwright + BeautifulSoup4                     |
+| Package managers   | npm (frontend), uv (backend)                    |
+| Containerization   | Docker + Docker Compose                         |
 
 ## Development Commands
 
@@ -82,34 +82,35 @@ docker compose up frontend     # Start frontend only
 
 Base URL: `http://localhost:8000`
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | API info / health check |
-| GET | `/health` | Health status |
-| GET | `/events` | List all events (metadata only, no performances) |
-| GET | `/events/{city}/{year}` | Get event by city and year (with performances, no laps) |
-| GET | `/events/{city}/{year}/graph` | Get ECharts-ready graph data (cumulative miles over time) |
-| GET | `/events/by-city/{city}` | Get all events for a city |
-| GET | `/events/{year}` | Get event by year (legacy) |
-| GET | `/athletes` | All athletes with aggregated career stats |
-| GET | `/athletes/{name}` | Single athlete with per-event performance breakdown |
-| GET | `/performances/year/{year}` | All performances for a year |
-| GET | `/performances/year/{year}/sport/{sport}` | Performances filtered by sport |
-| GET | `/performances/year/{year}/top/{n}` | Top N performers by distance |
+| Method | Path                                      | Description                                               |
+| ------ | ----------------------------------------- | --------------------------------------------------------- |
+| GET    | `/`                                       | API info / health check                                   |
+| GET    | `/health`                                 | Health status                                             |
+| GET    | `/events`                                 | List all events (metadata only, no performances)          |
+| GET    | `/events/{city}/{year}`                   | Get event by city and year (with performances, no laps)   |
+| GET    | `/events/{city}/{year}/graph`             | Get ECharts-ready graph data (cumulative miles over time) |
+| GET    | `/events/by-city/{city}`                  | Get all events for a city                                 |
+| GET    | `/events/{year}`                          | Get event by year (legacy)                                |
+| GET    | `/athletes`                               | All athletes with aggregated career stats                 |
+| GET    | `/athletes/{name}`                        | Single athlete with per-event performance breakdown       |
+| GET    | `/performances/year/{year}`               | All performances for a year                               |
+| GET    | `/performances/year/{year}/sport/{sport}` | Performances filtered by sport                            |
+| GET    | `/performances/year/{year}/top/{n}`       | Top N performers by distance                              |
 
 ## Frontend Pages
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Home.vue | Welcome page with navigation links |
-| `/event` | EventGrid.vue | DataTable view of performances with multi-event selection and sport filter |
-| `/athletes` | AthletesGrid.vue | DataTable of all athletes with aggregated career stats, search, sport/gender filters. Row-click navigates to detail. |
-| `/athletes/:name` | AthleteDetail.vue | Single athlete profile with info, career totals, and per-event performance DataTable |
-| `/event/graph` | EventGraph.vue | ECharts line chart with metric toggle (distance/speed), unit toggle (mi/km), and athlete selection panel |
+| Route             | Page              | Description                                                                                                          |
+| ----------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `/`               | Home.vue          | Welcome page with navigation links                                                                                   |
+| `/event`          | EventGrid.vue     | DataTable view of performances with multi-event selection and sport filter                                           |
+| `/athletes`       | AthletesGrid.vue  | DataTable of all athletes with aggregated career stats, search, sport/gender filters. Row-click navigates to detail. |
+| `/athletes/:name` | AthleteDetail.vue | Single athlete profile with info, career totals, and per-event performance DataTable                                 |
+| `/event/graph`    | EventGraph.vue    | ECharts line chart with metric toggle (distance/speed), unit toggle (mi/km), and athlete selection panel             |
 
 ### Multi-event selection pattern
 
 Both EventGrid and EventGraph use the same selection pattern:
+
 - **URL**: Query params like `/event?event=homestead_2024&event=homestead_2023`
 - **Slug**: Frontend-only convention (`city_year`) derived via `toSlug()` from `utils/eventSlug.ts` — not stored in backend models
 - **Dropdown**: PrimeVue MultiSelect with chip display
@@ -160,26 +161,26 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `frontend/src/main.ts` | Vue app initialization, PrimeVue theme setup |
-| `frontend/src/App.vue` | Root component (Header + router-view) |
-| `frontend/src/pages/EventGrid.vue` | DataTable view with multi-event selection |
-| `frontend/src/pages/EventGraph.vue` | ECharts line chart with metric/unit toggles and athlete panel |
-| `frontend/src/utils/eventSlug.ts` | Shared `toSlug()` utility for event slug generation |
-| `frontend/src/router/index.ts` | Route definitions |
-| `frontend/src/pages/AthletesGrid.vue` | Athletes DataTable with career stats |
-| `frontend/src/pages/AthleteDetail.vue` | Single athlete profile with per-event performances |
-| `frontend/src/fetch/fetchAthletes.ts` | API client for athletes endpoint |
-| `frontend/src/fetch/fetchEvents.tsx` | API client for event endpoints |
-| `backend/api/app.py` | FastAPI app creation, CORS, router mounting |
-| `backend/api/loader.py` | Startup data loading from JSON files |
-| `backend/api/routes/events.py` | Event API endpoints (list, by city/year, graph) |
-| `backend/api/routes/performances.py` | Performance API endpoints |
-| `backend/api/routes/athletes.py` | Athletes endpoint with career stat aggregation |
-| `backend/models/event.py` | Event data model |
-| `backend/models/performance.py` | Performance data model (includes `to_graph_dict()`) |
-| `backend/models/event_registry.py` | In-memory event collection with lookup methods |
+| File                                   | Purpose                                                       |
+| -------------------------------------- | ------------------------------------------------------------- |
+| `frontend/src/main.ts`                 | Vue app initialization, PrimeVue theme setup                  |
+| `frontend/src/App.vue`                 | Root component (Header + router-view)                         |
+| `frontend/src/pages/EventGrid.vue`     | DataTable view with multi-event selection                     |
+| `frontend/src/pages/EventGraph.vue`    | ECharts line chart with metric/unit toggles and athlete panel |
+| `frontend/src/utils/eventSlug.ts`      | Shared `toSlug()` utility for event slug generation           |
+| `frontend/src/router/index.ts`         | Route definitions                                             |
+| `frontend/src/pages/AthletesGrid.vue`  | Athletes DataTable with career stats                          |
+| `frontend/src/pages/AthleteDetail.vue` | Single athlete profile with per-event performances            |
+| `frontend/src/fetch/fetchAthletes.ts`  | API client for athletes endpoint                              |
+| `frontend/src/fetch/fetchEvents.tsx`   | API client for event endpoints                                |
+| `backend/api/app.py`                   | FastAPI app creation, CORS, router mounting                   |
+| `backend/api/loader.py`                | Startup data loading from JSON files                          |
+| `backend/api/routes/events.py`         | Event API endpoints (list, by city/year, graph)               |
+| `backend/api/routes/performances.py`   | Performance API endpoints                                     |
+| `backend/api/routes/athletes.py`       | Athletes endpoint with career stat aggregation                |
+| `backend/models/event.py`              | Event data model                                              |
+| `backend/models/performance.py`        | Performance data model (includes `to_graph_dict()`)           |
+| `backend/models/event_registry.py`     | In-memory event collection with lookup methods                |
 
 ## Testing
 
