@@ -26,8 +26,9 @@ const sportOptions = [
 
 const genderOptions = [
     { label: 'All', value: 'All' },
-    { label: 'M', value: 'M' },
-    { label: 'F', value: 'F' },
+    { label: 'M', value: 'Male' },
+    { label: 'F', value: 'Female' },
+    { label: 'NB', value: 'Non-binary' },
 ]
 
 // --- Data fetching ---
@@ -53,13 +54,11 @@ const filteredAthletes = computed(() => {
     }
 
     if (sportFilter.value !== 'All') {
-        result = result.filter((a) =>
-            a.sports.some((s) => s.toLowerCase().includes(sportFilter.value.toLowerCase())),
-        )
+        result = result.filter((a) => a.sports.some((s) => s.toLowerCase().includes(sportFilter.value.toLowerCase())))
     }
 
     if (genderFilter.value !== 'All') {
-        result = result.filter((a) => a.gender === genderFilter.value)
+        result = result.filter((a) => a.gender.toLowerCase() === genderFilter.value.toLowerCase())
     }
 
     return result
@@ -74,16 +73,27 @@ const onRowClick = (event: any) => {
     <div class="p-4">
         <!-- Toolbar: search + sport filter + gender filter -->
         <div class="flex items-center justify-center pb-4 gap-5 flex-wrap">
-            <InputText v-model="searchQuery" placeholder="Search name, city, state, country..."
-                class="w-full md:w-80" />
+            <InputText
+                v-model="searchQuery"
+                placeholder="Search name, city, state, country..."
+                class="w-full md:w-80"
+            />
 
             <SelectButton v-model="sportFilter" :options="sportOptions" optionLabel="label" optionValue="value" />
 
             <SelectButton v-model="genderFilter" :options="genderOptions" optionLabel="label" optionValue="value" />
         </div>
 
-        <DataTable :value="filteredAthletes" sortMode="multiple" paginator :rows="50"
-            :rowsPerPageOptions="[50, 100, 200]" @row-click="onRowClick" class="cursor-pointer" tableStyle="{}">
+        <DataTable
+            :value="filteredAthletes"
+            sortMode="multiple"
+            paginator
+            :rows="50"
+            :rowsPerPageOptions="[50, 100, 200]"
+            @row-click="onRowClick"
+            class="cursor-pointer"
+            tableStyle="{}"
+        >
             <Column header="#">
                 <template #body="slotProps">
                     {{ (slotProps.index ?? 0) + 1 }}
