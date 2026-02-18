@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import SelectButton from 'primevue/selectbutton'
+import MultiSelect from 'primevue/multiselect'
 import InputText from 'primevue/inputtext'
 import Chip from 'primevue/chip'
 import { ref, computed, onMounted } from 'vue'
@@ -14,18 +14,12 @@ const router = useRouter()
 
 const athletes = ref<AthleteStats[]>([])
 const searchQuery = ref('')
-const sportFilter = ref('All')
-const genderFilter = ref('All')
+const sportFilter = ref<string[]>([])
+const genderFilter = ref<string[]>([])
 
-const sportOptions = [
-    { label: 'All', value: 'All' },
-    { label: 'Skateboard', value: 'Skateboard' },
-    { label: 'Inline', value: 'Inline' },
-    { label: 'Quad', value: 'Quad' },
-]
+const sportOptions = ['Skateboard', 'Inline', 'Quad']
 
 const genderOptions = [
-    { label: 'All', value: 'All' },
     { label: 'M', value: 'Male' },
     { label: 'F', value: 'Female' },
     { label: 'NB', value: 'Non-binary' },
@@ -53,12 +47,16 @@ const filteredAthletes = computed(() => {
         )
     }
 
-    if (sportFilter.value !== 'All') {
-        result = result.filter((a) => a.sports.some((s) => s.toLowerCase().includes(sportFilter.value.toLowerCase())))
+    if (sportFilter.value.length > 0) {
+        result = result.filter((a) =>
+            a.sports.some((s) => sportFilter.value.some((f) => s.toLowerCase().includes(f.toLowerCase()))),
+        )
     }
 
-    if (genderFilter.value !== 'All') {
-        result = result.filter((a) => a.gender.toLowerCase() === genderFilter.value.toLowerCase())
+    if (genderFilter.value.length > 0) {
+        result = result.filter((a) =>
+            genderFilter.value.some((g) => a.gender.toLowerCase() === g.toLowerCase()),
+        )
     }
 
     return result
@@ -79,9 +77,16 @@ const onRowClick = (event: any) => {
                 class="w-full md:w-80"
             />
 
-            <SelectButton v-model="sportFilter" :options="sportOptions" optionLabel="label" optionValue="value" />
+            <MultiSelect v-model="sportFilter" :options="sportOptions" placeholder="Sport" display="chip" />
 
-            <SelectButton v-model="genderFilter" :options="genderOptions" optionLabel="label" optionValue="value" />
+            <MultiSelect
+                v-model="genderFilter"
+                :options="genderOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Gender"
+                display="chip"
+            />
         </div>
 
         <DataTable

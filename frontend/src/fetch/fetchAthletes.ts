@@ -42,7 +42,7 @@ export interface AthleteProfile {
 }
 
 export const fetchAllAthletes = async (): Promise<AthleteStats[]> => {
-    const response = await fetch(`${API_URL}${ATHLETES_ENDPOINT}`)
+    const response = await fetch(`${API_URL}${ATHLETES_ENDPOINT}/`)
     return response.json()
 }
 

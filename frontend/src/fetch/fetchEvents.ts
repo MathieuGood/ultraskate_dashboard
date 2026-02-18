@@ -2,7 +2,7 @@ const API_URL = 'http://localhost:8000/'
 const EVENTS_ENDPOINT = 'events'
 
 export const fetchAllEvents = async () => {
-  const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}`)
+  const response = await fetch(`${API_URL}${EVENTS_ENDPOINT}/`)
   return response.json()
 }
 

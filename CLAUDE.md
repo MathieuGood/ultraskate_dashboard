@@ -172,7 +172,7 @@ API calls live in `frontend/src/fetch/`. Each file exports async functions that 
 | `frontend/src/pages/AthletesGrid.vue`  | Athletes DataTable with career stats                          |
 | `frontend/src/pages/AthleteDetail.vue` | Single athlete profile with per-event performances            |
 | `frontend/src/fetch/fetchAthletes.ts`  | API client for athletes endpoint                              |
-| `frontend/src/fetch/fetchEvents.tsx`   | API client for event endpoints                                |
+| `frontend/src/fetch/fetchEvents.ts`   | API client for event endpoints                                |
 | `backend/api/app.py`                   | FastAPI app creation, CORS, router mounting                   |
 | `backend/api/loader.py`                | Startup data loading from JSON files                          |
 | `backend/api/routes/events.py`         | Event API endpoints (list, by city/year, graph)               |
