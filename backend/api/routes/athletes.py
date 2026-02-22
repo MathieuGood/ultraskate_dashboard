@@ -48,7 +48,7 @@ async def get_all_athletes():
             "sports": sorted(entry.get("sports", [])),
         })
 
-    result.sort(key=lambda a: a["total_miles"], reverse=True)
+    result.sort(key=lambda a: a["name"].lower())
     return result
 
 
